@@ -63,5 +63,9 @@ pipeline {
         failure {
             notifySlack 'FAILED'
         }
+
+        always {
+          cleanWs()
+        }
     }
 }
