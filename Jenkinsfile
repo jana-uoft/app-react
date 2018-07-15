@@ -25,7 +25,7 @@ pipeline {
           try {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarnd 2>commandResult'
+              sh 'yarn 2>commandResult'
             }
           } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}"} }
         }
@@ -39,7 +39,7 @@ pipeline {
         script {
           try {
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn test 2>commandResult'
+              sh 'yarnd test 2>commandResult'
             }
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while testing.\n\n${readFile('commandResult').trim()}"} }
         }
