@@ -25,7 +25,7 @@ pipeline {
           try {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarnd > commandResult'
+              sh 'yarnd &> commandResult'
             }
           } catch (e) { if (!errorOccured) {
             sh 'ls'
