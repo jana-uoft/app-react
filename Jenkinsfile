@@ -32,7 +32,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!errorOccurred) {errorOccurred = e} }
+                    } catch (e) { if (!errorOccurred) {errorOccurred = e.message} }
                 }
             }
             post {
@@ -79,7 +79,7 @@ pipeline {
             notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         unstable {
-            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred.message)
+            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
         }
         always {
             cleanWs()
