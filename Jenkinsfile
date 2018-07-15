@@ -95,6 +95,7 @@ pipeline {
         script {
           try {
             // Create archive
+            sh 'printenv'
             sh 'mkdir -p ./ARCHIVE 2>commandResult'
             sh 'mv node_modules ARCHIVE/ 2>commandResult'
             sh 'mv build ARCHIVE/ 2>commandResult'
