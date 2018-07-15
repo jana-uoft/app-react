@@ -1,5 +1,7 @@
 #!groovy
 
+def errorOccurred = false
+
 pipeline {
     environment {
         CHANNEL = '#builds'
@@ -25,9 +27,11 @@ pipeline {
         stage ('Test') {
             steps {
                 // test
-                nodejs(nodeJSInstallationName: '10.6.0') {
-                    sh 'yarn test'
-                }
+                try {
+                    nodejs(nodeJSInstallationName: '10.6.0') {
+                        sh 'yarn test'
+                    }
+                } catch (e) { if (!errorOccurred) {errorOccurred = e} }
             }
             post {
                 always {
@@ -69,6 +73,9 @@ pipeline {
         }
         always {
             cleanWs()
+            if (errorOccurred != false) {
+                throw errorOccurred
+            }
         }
     }
 }
