@@ -99,8 +99,8 @@ pipeline {
             sh 'mv build ARCHIVE/ 2>commandResult'
             sh "tar zcf '${SITE_NAME}${getSuffix()}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${getSuffix()}'/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none 2>commandResult"
             // Upload archive to server
-            sh "scp -o StrictHostKeyChecking=no ${SITE_NAME}${getSuffix()}.tar.gz root@165.227.35.62:/root/ 2>commandResult"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+            sh "scp ${SITE_NAME}${getSuffix()}.tar.gz root@165.227.35.62:/root/ 2>commandResult"
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
