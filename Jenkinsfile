@@ -1,6 +1,6 @@
 #!groovy
 
-def errorOccurred = false
+def buildStatus = false
 
 pipeline {
     environment {
@@ -13,7 +13,7 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack(null, CHANNEL, COMMIT_MESSAGE, AUTHOR)
+                notifySlack()
             }
         }
         stage ('Install Packages') {
@@ -32,7 +32,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!errorOccurred) {errorOccurred = e.message} }
+                    } catch (e) { if (!buildStatus) {buildStatus = e.message} }
                 }
             }
             post {
@@ -54,7 +54,7 @@ pipeline {
         stage ('Build') {
             when {
                 expression {
-                    return errorOccurred == false;
+                    return buildStatus == false;
                 }
             }
             steps {
@@ -73,7 +73,7 @@ pipeline {
     }
     post {
         always {
-            notifySlack(errorOccurred, CHANNEL, COMMIT_MESSAGE, AUTHOR)
+            notifySlack(buildStatus)
             cleanWs()
         }
     }
