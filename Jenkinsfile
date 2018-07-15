@@ -33,11 +33,7 @@ pipeline {
     }
     stage ('Test') {
       // Skip building if an error has occured in previous stages
-      when {
-        expression {
-          return !errorOccured;
-        }
-      }
+      when { expression { return !errorOccured; } }
       steps {
         // Test
         script {
@@ -69,11 +65,7 @@ pipeline {
     }
     stage ('Build') {
       // Skip building if an error has occured in previous stages
-      when {
-        expression {
-          return !errorOccured;
-        }
-      }
+      when { expression { return !errorOccured; } }
       steps {
         script {
           try {
