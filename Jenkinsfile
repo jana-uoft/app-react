@@ -1,6 +1,6 @@
 #!groovy
 
-def buildStatus = false
+def errorOccured = false
 
 pipeline {
     // construct global env values used by notifySlack()
@@ -33,7 +33,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!buildStatus) {buildStatus = e.message} }
+                    } catch (e) { if (!errorOccured) {errorOccured = e.message} }
                 }
             }
             post {
@@ -55,7 +55,7 @@ pipeline {
         stage ('Build') {
             when {
                 expression {
-                    return buildStatus == false;
+                    return errorOccured == false;
                 }
             }
             steps {
@@ -74,7 +74,7 @@ pipeline {
     }
     post {
         always {
-            notifySlack(buildStatus)
+            notifySlack(errorOccured)
             cleanWs()
         }
     }
