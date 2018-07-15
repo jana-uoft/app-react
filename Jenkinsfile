@@ -78,7 +78,7 @@ pipeline {
     }
     post {
         always {
-            notifySlack()
+            notifySlack(ERROR_OCCURED)
             cleanWs()
         }
     }
