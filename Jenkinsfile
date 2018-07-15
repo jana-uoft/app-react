@@ -9,7 +9,7 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack 'STARTED' '#builds' COMMIT_MESSAGE
+                notifySlack 'STARTED' '#builds' $COMMIT_MESSAGE
             }
         }
         stage ('Install Packages') {
@@ -60,11 +60,11 @@ pipeline {
     }
     post {
         success {
-            notifySlack 'SUCCESS' '#builds' COMMIT_MESSAGE
+            notifySlack 'SUCCESS' '#builds' $COMMIT_MESSAGE
         }
 
         failure {
-            notifySlack 'FAILED' '#builds' COMMIT_MESSAGE
+            notifySlack 'FAILED' '#builds' $COMMIT_MESSAGE
         }
 
         always {
