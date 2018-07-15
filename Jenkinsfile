@@ -1,26 +1,26 @@
 #!groovy
 
+def errorOccured = false // Used to check buildStatus during any stage
+
 pipeline {
-    // construct global env values
+    // construct global env variables
     environment {
-        error_occured = false  // used to verify buildStatus during every stage
-        SLACK_CHANNEL = '#builds'
-        COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
-        COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim()
-        PRODUCTION_BRANCH = 'master'
-        DEVELOPMENT_BRANCH = 'dev'
+        PRODUCTION_BRANCH = 'master' // Source branch used for production
+        DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
+        SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
+        COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
+        COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
     }
     agent any
     stages {
         stage('Start') {
             steps {
-                // send 'BUILD STARTED' notification
-                notifySlack()
+                notifySlack() // Send 'BUILD STARTED' notification
             }
         }
         stage ('Install Packages') {
             steps {
-                // install required packages
+                // Install required node packages
                 nodejs(nodeJSInstallationName: '10.6.0') {
                     sh 'yarn'
                 }
@@ -28,20 +28,20 @@ pipeline {
         }
         stage ('Test') {
             steps {
-                // test
+                // Test
                 script {
                     try {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!error_occured) {error_occured = "Failing Tests Detected"} }
+                    } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected"} }
                 }
             }
             post {
                 always {
-                    // publish junit test results
+                    // Publish junit test results
                     junit testResults: 'junit.xml', allowEmptyResults: true
-                    // publish clover.xml and html(if generated) test coverge report
+                    // Publish clover.xml and html(if generated) test coverge report
                     step([
                         $class: 'CloverPublisher',
                         cloverReportDir: 'coverage',
@@ -49,21 +49,22 @@ pipeline {
                         failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
                     ])
                     script {
-                        if (!error_occured && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-                            error_occured = "Insufficent Test Coverage"
+                        if (!errorOccured && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
+                            errorOccured = "Insufficent Test Coverage"
                         }
                     }
                 }
             }
         }
         stage ('Build') {
+            // Skip building if an error has occured in previous stages
             when {
                 expression {
-                    return !error_occured;
+                    return !errorOccured;
                 }
             }
             steps {
-                // build
+                // Build
                 nodejs(nodeJSInstallationName: '10.6.0') {
                     sh 'yarn build'
                 }
@@ -78,8 +79,8 @@ pipeline {
     }
     post {
         always {
-            notifySlack(error_occured)
-            cleanWs()
+            notifySlack(errorOccured) // Send final 'SUCCESS/FAILURE' notification
+            cleanWs() // Recursively clean workspace
         }
     }
 }
