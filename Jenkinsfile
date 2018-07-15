@@ -12,10 +12,10 @@ pipeline {
             steps {
                 // send build started notifications
                 notifySlack(
-                    channel: CHANNEL,
+                    channel: "$CHANNEL",
                     branch: "$env.BRANCH_NAME",
-                    commitMessage: COMMIT_MESSAGE,
-                    author: AUTHOR
+                    commitMessage: "$COMMIT_MESSAGE",
+                    author: "$AUTHOR"
                 )
             }
         }
@@ -68,10 +68,10 @@ pipeline {
     post {
         always {
             notifySlack(
-                channel: CHANNEL,
+                channel: "$CHANNEL",
                 branch: "$env.BRANCH_NAME",
-                commitMessage: COMMIT_MESSAGE,
-                author: AUTHOR
+                commitMessage: "$COMMIT_MESSAGE",
+                author: "$AUTHOR"
             )
           cleanWs()
         }
