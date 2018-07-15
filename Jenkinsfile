@@ -74,7 +74,7 @@ pipeline {
       }
     }
     stage ('Build') {
-      // Skip stage if an error has occured in previous stages
+      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
       when { expression { return !errorOccured && isDeploymentBranch(); } }
       steps {
         script {
@@ -88,7 +88,7 @@ pipeline {
       }
     }
     stage ('Upload Archive') {
-      // Skip stage if an error has occured in previous stages
+      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
       when { expression { return !errorOccured && isDeploymentBranch(); } }
       steps {
         script {
@@ -97,21 +97,21 @@ pipeline {
             sh 'mkdir -p ./ARCHIVE 2>commandResult'
             sh 'mv node_modules/ ARCHIVE/ 2>commandResult'
             sh 'mv build/* ARCHIVE/ 2>commandResult'
-            sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
+            // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
             // Upload archive to server
-            sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
+            // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
     stage ('Deploy') {
-      // Skip stage if an error has occured in previous stages
+      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
       when { expression { return !errorOccured && isDeploymentBranch(); } }
       steps {
         script {
           try {
             // Deploy app
-            echo "ssh into server and deploy"
+            sh "rsync -azP ARCHIVE/ root@jana19.org:/var/www/jana19.org/"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
