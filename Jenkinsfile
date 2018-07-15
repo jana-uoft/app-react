@@ -38,7 +38,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
@@ -52,7 +52,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn test 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while testing.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
       post {
@@ -84,7 +84,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn build 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
@@ -98,14 +98,14 @@ pipeline {
             sh 'mkdir -p ./ARCHIVE 2>commandResult'
             sh 'mv node_modules ARCHIVE/ 2>commandResult'
             sh 'mv build ARCHIVE/ 2>commandResult'
-            sh "tar zcf ${SITE_NAME}${SUFFIX}.tar.gz ./ARCHIVE/* --transform \"s,^,${SITE_NAME}${SUFFIX}/,S\" --exclude=${SITE_NAME}${SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
+            sh "tar zcf '${SITE_NAME}${SUFFIX}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${SUFFIX}'/,S\" --exclude=${SITE_NAME}${SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
         script {
           try {
             // Upload archive to server
             echo "scp upload to server ${SITE_NAME}${SUFFIX}.tar.gz"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
@@ -117,7 +117,7 @@ pipeline {
           try {
             // Deploy app
             echo "ssh into server and deploy"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while deploying.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
