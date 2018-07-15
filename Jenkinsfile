@@ -3,7 +3,6 @@
 pipeline {
     environment {
         CHANNEL = '#builds'
-        BRANCH = sh (returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
         COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
         AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim()
     }
@@ -12,7 +11,7 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack('STARTED', CHANNEL, BRANCH, COMMIT_MESSAGE, AUTHOR)
+                notifySlack('STARTED', CHANNEL, COMMIT_MESSAGE, AUTHOR)
             }
         }
         stage ('Install Packages') {
@@ -63,10 +62,10 @@ pipeline {
     }
     post {
         success {
-            notifySlack('SUCCESS', CHANNEL, BRANCH, COMMIT_MESSAGE, AUTHOR)
+            notifySlack('SUCCESS', CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         failure {
-            notifySlack('FAILURE', CHANNEL, BRANCH, COMMIT_MESSAGE, AUTHOR)
+            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         always {
             cleanWs()
