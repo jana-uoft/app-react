@@ -34,7 +34,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!error_occured) {env.error_occured = "Failing Tests Detected"} }
+                    } catch (e) { if (!error_occured) {error_occured = "Failing Tests Detected"} }
                 }
             }
             post {
@@ -50,7 +50,7 @@ pipeline {
                     ])
                     script {
                         if (!error_occured && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-                            env.error_occured = "Insufficent Test Coverage"
+                            error_occured = "Insufficent Test Coverage"
                         }
                     }
                 }
