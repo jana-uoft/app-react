@@ -119,8 +119,8 @@ pipeline {
   }
   post {
     always {
-      notifySlack(errorOccured) // Send final 'Success/Failed' message based on errorOccured.
       cleanWs() // Recursively clean workspace
+      notifySlack(errorOccured) // Send final 'Success/Failed' message based on errorOccured.
     }
   }
 }
