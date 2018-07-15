@@ -13,11 +13,12 @@ def getSuffix() {
 pipeline {
   // construct global env variables
   environment {
-    SITE_NAME = 'testing' // Name for archive.
+    SITE_NAME = 'testing' // Name will be used for archive file (with suffix '-dev' if DEVELOPMENT_BRANCH)
+    CHEF_RECIPE_NAME = 'app-testing' // Name of the chef recipe to trigger in Deploy stage
     PRODUCTION_BRANCH = 'master' // Source branch used for production
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
+    SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
     CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1)) // (eg) origin/master: get string after '/'
-    SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
   }
@@ -108,7 +109,7 @@ pipeline {
             script {
               try {
                 // Upload archive to server
-                echo "scp upload to server ${SITE_NAME}${getSuffix()}.tar.gz"
+                echo "scp ${SITE_NAME}${getSuffix()}.tar.gz root@165.227.35.62:/root/"
               } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
             }
           }
