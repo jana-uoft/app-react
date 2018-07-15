@@ -29,6 +29,7 @@ pipeline {
               sh 'cat commandResult'
             }
           } catch (e) { if (!errorOccured) {
+            sh 'cat commandResult'
             def output = readFile('commandResult').trim()
             errorOccured = "Failed while installing node packages.\n\n$output"}
           }
