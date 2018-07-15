@@ -25,7 +25,7 @@ pipeline {
           try {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarnd > 2>commandResult'
+              sh 'yarnd 2>commandResult'
             }
           } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages."} }
         }
