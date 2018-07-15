@@ -13,7 +13,7 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR)
+                notifySlack(null, CHANNEL, COMMIT_MESSAGE, AUTHOR)
             }
         }
         stage ('Install Packages') {
@@ -72,16 +72,8 @@ pipeline {
         }
     }
     post {
-        success {
-            notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR)
-        }
-        failure {
-            notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR)
-        }
-        unstable {
-            notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
-        }
         always {
+            notifySlack(errorOccurred, CHANNEL, COMMIT_MESSAGE, AUTHOR)
             cleanWs()
         }
     }
