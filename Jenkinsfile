@@ -48,14 +48,18 @@ pipeline {
                         cloverReportFileName: 'clover.xml',
                         failingTarget: [methodCoverage: 90, conditionalCoverage: 90, statementCoverage: 90]
                     ])
-                    echo currentBuild.currentResult
+                    script {
+                        if (currentBuild.resultIsWorseOrEqualTo('SUCCESS')) {
+                            errorOccured = "Insufficent test coverage\nMinimum: Methods: 90%, Conditionals: 90%, Statements: 90%"
+                        }
+                    }
                 }
             }
         }
         stage ('Build') {
             when {
                 expression {
-                    return errorOccured==false && currentBuild.currentResult=='SUCCESS';
+                    return !errorOccured;
                 }
             }
             steps {
