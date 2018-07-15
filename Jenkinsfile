@@ -16,6 +16,7 @@ pipeline {
     stage('Start') {
       steps {
         notifySlack() // Send 'BUILD STARTED' notification
+        echo scm.branches[0].name
       }
     }
     stage ('Install Packages') {
