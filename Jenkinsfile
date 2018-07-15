@@ -26,10 +26,10 @@ pipeline {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarnd > commandResult'
-              sh 'cat commandResult'
+              sh 'ls'
             }
           } catch (e) { if (!errorOccured) {
-            sh 'ls'
+            // sh 'ls'
             def output = readFile('commandResult').trim()
             errorOccured = "Failed while installing node packages.\n\n$output"}
           }
