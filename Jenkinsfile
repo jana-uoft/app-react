@@ -1,12 +1,15 @@
 #!groovy
 
 pipeline {
+    environment {
+      COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
+    }
     agent any
     stages {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack 'STARTED'
+                notifySlack 'STARTED' '#builds' COMMIT_MESSAGE
             }
         }
         stage ('Install Packages') {
@@ -57,11 +60,11 @@ pipeline {
     }
     post {
         success {
-            notifySlack 'SUCCESS'
+            notifySlack 'SUCCESS' '#builds' COMMIT_MESSAGE
         }
 
         failure {
-            notifySlack 'FAILED'
+            notifySlack 'FAILED' '#builds' COMMIT_MESSAGE
         }
 
         always {
