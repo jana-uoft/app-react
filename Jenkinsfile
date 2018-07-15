@@ -73,13 +73,13 @@ pipeline {
     }
     post {
         success {
-            notifySlack('SUCCESS', CHANNEL, COMMIT_MESSAGE, AUTHOR)
+            notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         failure {
-            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR)
+            notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         unstable {
-            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
+            notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
         }
         always {
             cleanWs()
