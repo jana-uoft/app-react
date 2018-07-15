@@ -7,7 +7,7 @@ def isDeploymentBranch(current_branch, production_branch, development_branch){
 }
 
 def getSuffix(current_branch, development_branch) {
-  current_branch==development_branch ? return '-dev' : return "";
+  if (current_branch==development_branch) return '-dev' else return "";
 }
 
 pipeline {
