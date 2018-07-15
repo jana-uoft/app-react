@@ -105,6 +105,7 @@ pipeline {
         }
         stage('Upload Archive') {
           steps {
+            script {
               try {
                 // Upload archive to server
                 echo "scp upload to server ${SITE_NAME}${getSuffix()}.tar.gz"
