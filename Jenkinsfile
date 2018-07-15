@@ -105,7 +105,7 @@ pipeline {
           try {
             // Upload archive to server
             echo "scp upload to server ${SITE_NAME}${SUFFIX}.tar.gz"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}"} }
         }
       }
     }
@@ -117,7 +117,7 @@ pipeline {
           try {
             // Deploy app
             echo "ssh into server and deploy"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while deploying.\n\n${readFile('commandResult').trim()}"} }
         }
       }
     }
