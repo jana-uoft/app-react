@@ -8,6 +8,9 @@ pipeline {
     PRODUCTION_BRANCH = 'master' // Source branch used for production
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1)) // (eg) origin/master: get string after '/'
+    DEPLOYMENT_BRANCH = CURRENT_BRANCH==PRODUCTION_BRANCH || CURRENT_BRANCH=DEVELOPMENT_BRANCH // Auto generated
+    SITE_NAME = 'testing' // Name for archive.
+    SUFFIX = CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : "" // Suffix 'dev' will be added to SITE_NAME
     SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
@@ -65,7 +68,7 @@ pipeline {
     }
     stage ('Build') {
       // Skip stage if an error has occured in previous stages
-      when { expression { return !errorOccured; } }
+      when { expression { return !errorOccured && DEPLOYMENT_BRANCH; } }
       steps {
         script {
           try {
@@ -76,18 +79,44 @@ pipeline {
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while building.\n\n${readFile('commandResult').trim()}"} }
         }
       }
-      post {
-        success {
-          // Archive the built artifacts
-          echo "Archive and upload to brickyard"
+    }
+    stage ('Upload Archive') {
+      // Skip stage if an error has occured in previous stages
+      when { expression { return !errorOccured && DEPLOYMENT_BRANCH; } }
+      steps {
+        script {
+          try {
+            // Create archive
+            sh 'mkdir -p ./ARCHIVE 2>commandResult'
+            sh 'mv node_modules ARCHIVE/ 2>commandResult'
+            sh 'mv build ARCHIVE/ 2>commandResult'
+            sh "tar zcf ${SITE_NAME}${SUFFIX}.tar.gz ./ARCHIVE/* --transform \"s,^,${SITE_NAME}${SUFFIX}/,S\" --exclude=${SITE_NAME}${SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}"} }
+        }
+        script {
+          try {
+            // Upload archive to server
+            echo "scp upload to server ${SITE_NAME}${SUFFIX}.tar.gz"
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}"} }
+        }
+      }
+    }
+    stage ('Deploy') {
+      // Skip stage if an error has occured in previous stages
+      when { expression { return !errorOccured && DEPLOYMENT_BRANCH; } }
+      steps {
+        script {
+          try {
+            // Deploy app
+            echo "ssh into server and deploy"
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}"} }
         }
       }
     }
   }
   post {
     always {
-      // Send final 'SUCCESS/FAILURE' notification based on errorOccured.
-      notifySlack(errorOccured)
+      notifySlack(errorOccured) // Send final 'Success/Failed' message based on errorOccured.
       cleanWs() // Recursively clean workspace
     }
   }
