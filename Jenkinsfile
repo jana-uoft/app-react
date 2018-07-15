@@ -50,7 +50,7 @@ pipeline {
                     ])
                     script {
                         if (currentBuild.resultIsWorseOrEqualTo('SUCCESS')) {
-                            errorOccured = "Insufficent test coverage\nMinimum: Methods: 90%, Conditionals: 90%, Statements: 90%"
+                            errorOccured = "Insufficent Test Coverage\n Minimum required: methods: 90%, conditionals: 90%, statements: 90%"
                         }
                     }
                 }
