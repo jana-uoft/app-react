@@ -16,7 +16,7 @@ pipeline {
     stage('Start') {
       steps {
         notifySlack() // Send 'BUILD STARTED' notification
-        sh 'printenv'
+        echo env.GIT_BRANCH
       }
     }
     stage ('Install Packages') {
