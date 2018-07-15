@@ -3,6 +3,7 @@
 def buildStatus = false
 
 pipeline {
+    // construct global env values used by notifySlack()
     environment {
         CHANNEL = '#builds'
         COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
