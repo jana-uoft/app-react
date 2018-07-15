@@ -56,7 +56,7 @@ pipeline {
         stage ('Build') {
             when {
                 expression {
-                    return errorOccured == false;
+                    return errorOccured==false && currentBuild.currentResult=='SUCCESS';
                 }
             }
             steps {
