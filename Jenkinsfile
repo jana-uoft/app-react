@@ -76,6 +76,9 @@ pipeline {
             notifySlack('SUCCESS', CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         failure {
+            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR)
+        }
+        unstable {
             notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
         }
         always {
