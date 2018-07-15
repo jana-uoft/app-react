@@ -11,7 +11,7 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack(CHANNEL, "$env.BRANCH_NAME", COMMIT_MESSAGE, AUTHOR)
+                notifySlack("${currentBuild.currentResult}", CHANNEL, "$env.BRANCH_NAME", COMMIT_MESSAGE, AUTHOR)
             }
         }
         stage ('Install Packages') {
@@ -62,7 +62,7 @@ pipeline {
     }
     post {
         always {
-            notifySlack(CHANNEL, "$env.BRANCH_NAME", COMMIT_MESSAGE, AUTHOR)
+            notifySlack("${currentBuild.currentResult}", CHANNEL, "$env.BRANCH_NAME", COMMIT_MESSAGE, AUTHOR)
             cleanWs()
         }
     }
