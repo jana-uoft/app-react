@@ -30,7 +30,7 @@ pipeline {
                 }
             }
             post {
-                success {
+                always {
                     // publish junit test results
                     junit testResults: 'junit.xml', allowEmptyResults: true
                     // publish html coverge report
