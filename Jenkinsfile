@@ -2,23 +2,21 @@
 
 def errorOccured = false // Used to check buildStatus during any stage
 
-def isDeploymentBranch(current_branch, production_branch, development_branch){
-  return current_branch==production_branch || current_branch==development_branch;
+def isDeploymentBranch(){
+  return CURRENT_BRANCH==PRODUCTION_BRANCH || CURRENT_BRANCH==DEVELOPMENT_BRANCH;
 }
 
-def getSuffix(current_branch, development_branch) {
-  if (current_branch==development_branch) return '-dev' else return "";
+def getSuffix() {
+  return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : '';
 }
 
 pipeline {
   // construct global env variables
   environment {
+    SITE_NAME = 'testing' // Name for archive.
     PRODUCTION_BRANCH = 'master' // Source branch used for production
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1)) // (eg) origin/master: get string after '/'
-    DEPLOYMENT_BRANCH = isDeploymentBranch(CURRENT_BRANCH, PRODUCTION_BRANCH, DEVELOPMENT_BRANCH) // Auto generated
-    SITE_NAME = 'testing' // Name for archive.
-    SITE_NAME_SUFFIX = getSuffix(CURRENT_BRANCH, DEVELOPMENT_BRANCH) // Auto generated
     SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
@@ -76,7 +74,7 @@ pipeline {
     }
     stage ('Build') {
       // Skip stage if an error has occured in previous stages
-      when { expression { return !errorOccured && DEPLOYMENT_BRANCH; } }
+      when { expression { return !errorOccured && isDeploymentBranch(); } }
       steps {
         script {
           try {
@@ -90,7 +88,7 @@ pipeline {
     }
     stage ('Upload Archive') {
       // Skip stage if an error has occured in previous stages
-      when { expression { return !errorOccured && DEPLOYMENT_BRANCH; } }
+      when { expression { return !errorOccured && isDeploymentBranch(); } }
       steps {
         script {
           try {
@@ -99,20 +97,20 @@ pipeline {
             sh 'mkdir -p ./ARCHIVE 2>commandResult'
             sh 'mv node_modules ARCHIVE/ 2>commandResult'
             sh 'mv build ARCHIVE/ 2>commandResult'
-            sh "tar zcf '${SITE_NAME}${SITE_NAME_SUFFIX}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${SITE_NAME_SUFFIX}'/,S\" --exclude=${SITE_NAME}${SITE_NAME_SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
+            sh "tar zcf '${SITE_NAME}${getSuffix()}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${getSuffix()}'/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none 2>commandResult"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
         script {
           try {
             // Upload archive to server
-            echo "scp upload to server ${SITE_NAME}${SITE_NAME_SUFFIX}.tar.gz"
+            echo "scp upload to server ${SITE_NAME}${getSuffix()}.tar.gz"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
     }
     stage ('Deploy') {
       // Skip stage if an error has occured in previous stages
-      when { expression { return !errorOccured && DEPLOYMENT_BRANCH; } }
+      when { expression { return !errorOccured && isDeploymentBranch(); } }
       steps {
         script {
           try {
