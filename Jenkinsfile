@@ -54,7 +54,7 @@ pipeline {
         stage ('Build') {
             when {
                 expression {
-                    return errorOccurred != false;
+                    return errorOccurred == false;
                 }
             }
             steps {
