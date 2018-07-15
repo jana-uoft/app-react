@@ -1,19 +1,20 @@
 #!groovy
 
-def errorOccured = false
+def errorOccured = false // used to verify buildStatus during every stage
 
 pipeline {
-    // construct global env values used by notifySlack()
+    // construct global env values
     environment {
-        CHANNEL = '#builds'
+        SLACK_CHANNEL = '#builds'
         COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
-        AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim()
+        COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim()
+
     }
     agent any
     stages {
         stage('Start') {
             steps {
-                // send build started notifications
+                // send 'BUILD STARTED' notification
                 notifySlack()
             }
         }
@@ -49,6 +50,14 @@ pipeline {
                         reportFiles: 'index.html',
                         reportName: 'Test Coverage Report'
                     ]
+                    step([
+                        $class: 'CloverPublisher',
+                        cloverReportDir: 'coverage',
+                        cloverReportFileName: 'clover.xml',
+                        healthyTarget: [methodCoverage: 70, conditionalCoverage: 80, statementCoverage: 80], // optional, default is: method=70, conditional=80, statement=80
+                        unhealthyTarget: [methodCoverage: 50, conditionalCoverage: 50, statementCoverage: 50], // optional, default is none
+                        failingTarget: [methodCoverage: 0, conditionalCoverage: 0, statementCoverage: 0] // optional, default is none
+                    ])
                 }
             }
         }
