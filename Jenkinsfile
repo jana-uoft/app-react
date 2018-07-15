@@ -86,25 +86,31 @@ pipeline {
         }
       }
     }
-    stage ('Upload Archive') {
+    stage ('Archive') {
       // Skip stage if an error has occured in previous stages
       when { expression { return !errorOccured && isDeploymentBranch(); } }
-      steps {
-        script {
-          try {
-            // Create archive
-            sh 'printenv'
-            sh 'mkdir -p ./ARCHIVE 2>commandResult'
-            sh 'mv node_modules ARCHIVE/ 2>commandResult'
-            sh 'mv build ARCHIVE/ 2>commandResult'
-            sh "tar zcf '${SITE_NAME}${getSuffix()}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${getSuffix()}'/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none 2>commandResult"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+      stages {
+        stage('Create Archive') {
+          steps {
+            script {
+              try {
+                // Create archive
+                sh 'mkdir -p ./ARCHIVE 2>commandResult'
+                sh 'mv node_modules ARCHIVE/ 2>commandResult'
+                sh 'mv build ARCHIVE/ 2>commandResult'
+                sh "tar zcf '${SITE_NAME}${getSuffix()}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${getSuffix()}'/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none 2>commandResult"
+              } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+            }
+          }
         }
-        script {
-          try {
-            // Upload archive to server
-            echo "scp upload to server ${SITE_NAME}${getSuffix()}.tar.gz"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+        stage('Upload Archive') {
+          steps {
+              try {
+                // Upload archive to server
+                echo "scp upload to server ${SITE_NAME}${getSuffix()}.tar.gz"
+              } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+            }
+          }
         }
       }
     }
