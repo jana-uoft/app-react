@@ -99,7 +99,7 @@ pipeline {
             sh 'mv build/* ARCHIVE/ 2>commandResult'
             sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,'${SITE_NAME}${getSuffix()}'/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
             // Upload archive to server
-            sh "scp ${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
+            sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
