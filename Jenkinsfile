@@ -79,7 +79,7 @@ pipeline {
             notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         unstable {
-            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
+            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred.message)
         }
         always {
             cleanWs()
