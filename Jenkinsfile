@@ -63,19 +63,23 @@ pipeline {
                 }
             }
         }
+        stage ('End') {
+            steps {
+                if (errorOccurred != false) {
+                    throw errorOccurred
+                }
+            }
+        }
     }
     post {
         success {
             notifySlack('SUCCESS', CHANNEL, COMMIT_MESSAGE, AUTHOR)
         }
         failure {
-            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR)
+            notifySlack('FAILURE', CHANNEL, COMMIT_MESSAGE, AUTHOR, errorOccurred)
         }
         always {
             cleanWs()
-            if (errorOccurred != false) {
-                throw errorOccurred
-            }
         }
     }
 }
