@@ -46,7 +46,7 @@ pipeline {
                         $class: 'CloverPublisher',
                         cloverReportDir: 'coverage',
                         cloverReportFileName: 'clover.xml',
-                        healthyTarget: [methodCoverage: 80, conditionalCoverage: 80, statementCoverage: 80], // optional, default is: method=70, conditional=80, statement=80
+                        failingTarget: [methodCoverage: 40, conditionalCoverage: 40, statementCoverage: 40]
                     ])
                     echo currentBuild.currentResult
                 }
