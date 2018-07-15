@@ -7,7 +7,8 @@ pipeline {
   environment {
     PRODUCTION_BRANCH = 'master' // Source branch used for production
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
-    CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1))
+    CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1)) // (eg) origin/master: get string after '/'
+    DEPLOYMENT_BRANCHES
     SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
@@ -16,15 +17,18 @@ pipeline {
   stages {
     stage('Start') {
       steps {
-        notifySlack() // Send 'BUILD STARTED' notification
-        echo CURRENT_BRANCH
+        notifySlack() // Send 'Build Started' notification
       }
     }
     stage ('Install Packages') {
       steps {
-        // Install required node packages
-        nodejs(nodeJSInstallationName: '10.6.0') {
-          sh 'yarn'
+        script {
+          try {
+            // Install required node packages
+            nodejs(nodeJSInstallationName: '10.6.0') {
+              sh 'yarn'
+            }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while installing node packages.\n\n$e.message"} }
         }
       }
     }
@@ -66,9 +70,13 @@ pipeline {
         }
       }
       steps {
-        // Build
-        nodejs(nodeJSInstallationName: '10.6.0') {
-          sh 'yarn build'
+        script {
+          try {
+            // Build
+            nodejs(nodeJSInstallationName: '10.6.0') {
+              sh 'yarn build'
+            }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building app.\n\n$e.message"} }
         }
       }
       post {
