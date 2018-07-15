@@ -49,7 +49,7 @@ pipeline {
                         failingTarget: [methodCoverage: 70, conditionalCoverage: 70, statementCoverage: 70]
                     ])
                     script {
-                        if (currentBuild.resultIsWorseOrEqualTo('SUCCESS')) {
+                        if (currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
                             errorOccured = "Insufficent Test Coverage\n Minimum required: methods: 75%, conditionals: 75%, statements: 75%"
                         }
                     }
