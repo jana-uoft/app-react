@@ -13,7 +13,7 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack('STARTED', CHANNEL, COMMIT_MESSAGE, AUTHOR)
+                notifySlack(currentBuild.result, CHANNEL, COMMIT_MESSAGE, AUTHOR)
             }
         }
         stage ('Install Packages') {
