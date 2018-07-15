@@ -1,6 +1,7 @@
 #!groovy
 
 def errorOccured = false // Used to check buildStatus during any stage
+def getSuffix(current_branch, development_branch){return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : "";}
 
 pipeline {
   // construct global env variables
@@ -10,7 +11,7 @@ pipeline {
     CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1)) // (eg) origin/master: get string after '/'
     DEPLOYMENT_BRANCH = CURRENT_BRANCH==PRODUCTION_BRANCH || CURRENT_BRANCH==DEVELOPMENT_BRANCH // Auto generated
     SITE_NAME = 'testing' // Name for archive.
-    SUFFIX = CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : "" // Suffix 'dev' will be added to SITE_NAME
+    SUFFIX = getSuffix()
     SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
