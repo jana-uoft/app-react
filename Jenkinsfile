@@ -18,7 +18,7 @@ pipeline {
     CURRENT_BRANCH = env.GIT_BRANCH.getAt((env.GIT_BRANCH.indexOf('/')+1..-1)) // (eg) origin/master: get string after '/'
     DEPLOYMENT_BRANCH = isDeploymentBranch(CURRENT_BRANCH, PRODUCTION_BRANCH, DEVELOPMENT_BRANCH) // Auto generated
     SITE_NAME = 'testing' // Name for archive.
-    SUFFIX = getSuffix(CURRENT_BRANCH, DEVELOPMENT_BRANCH) // Auto generated
+    SITE_NAME_SUFFIX = getSuffix(CURRENT_BRANCH, DEVELOPMENT_BRANCH) // Auto generated
     SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
@@ -99,13 +99,13 @@ pipeline {
             sh 'mkdir -p ./ARCHIVE 2>commandResult'
             sh 'mv node_modules ARCHIVE/ 2>commandResult'
             sh 'mv build ARCHIVE/ 2>commandResult'
-            sh "tar zcf '${SITE_NAME}${SUFFIX}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${SUFFIX}'/,S\" --exclude=${SITE_NAME}${SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
+            sh "tar zcf '${SITE_NAME}${SITE_NAME_SUFFIX}.tar.gz' ./ARCHIVE/* --transform \"s,^,'${SITE_NAME}${SITE_NAME_SUFFIX}'/,S\" --exclude=${SITE_NAME}${SITE_NAME_SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
         script {
           try {
             // Upload archive to server
-            echo "scp upload to server ${SITE_NAME}${SUFFIX}.tar.gz"
+            echo "scp upload to server ${SITE_NAME}${SITE_NAME_SUFFIX}.tar.gz"
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
       }
