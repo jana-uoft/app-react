@@ -46,11 +46,11 @@ pipeline {
                         $class: 'CloverPublisher',
                         cloverReportDir: 'coverage',
                         cloverReportFileName: 'clover.xml',
-                        failingTarget: [methodCoverage: 90, conditionalCoverage: 90, statementCoverage: 90]
+                        failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
                     ])
                     script {
                         if (currentBuild.resultIsWorseOrEqualTo('SUCCESS')) {
-                            errorOccured = "Insufficent Test Coverage\n Minimum required: methods: 90%, conditionals: 90%, statements: 90%"
+                            errorOccured = "Insufficent Test Coverage\n Minimum required: methods: 75%, conditionals: 75%, statements: 75%"
                         }
                     }
                 }
