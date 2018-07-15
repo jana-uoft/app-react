@@ -26,6 +26,7 @@ pipeline {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarnd > commandResult'
+              sh 'cat commandResult'
             }
           } catch (e) { if (!errorOccured) {
             def output = readFile('commandResult').trim()
