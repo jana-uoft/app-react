@@ -34,7 +34,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!errorOccured) {errorOccured = "Failing tests"} }
+                    } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected"} }
                 }
             }
             post {
@@ -46,11 +46,11 @@ pipeline {
                         $class: 'CloverPublisher',
                         cloverReportDir: 'coverage',
                         cloverReportFileName: 'clover.xml',
-                        failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
+                        failingTarget: [methodCoverage: 80, conditionalCoverage: 80, statementCoverage: 80]
                     ])
                     script {
                         if (!errorOccured && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-                            errorOccured = "Insufficent Test Coverage\n Minimum required: methods: 75%, conditionals: 75%, statements: 75%"
+                            errorOccured = "Insufficent Test Coverage"
                         }
                     }
                 }
