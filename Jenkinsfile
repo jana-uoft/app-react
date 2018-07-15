@@ -2,14 +2,15 @@
 
 pipeline {
     environment {
-      COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
+        COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
+        AUTHOR = sh(returnStdout: true, script: "git --no-pager show -s --format='%an' ${sh(returnStdout: true, script: 'git rev-parse HEAD')}").trim()
     }
     agent any
     stages {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack('STARTED', '#builds', "${COMMIT_MESSAGE}")
+                notifySlack('STARTED', '#builds', COMMIT_MESSAGE, AUTHOR)
             }
         }
         stage ('Install Packages') {
@@ -60,11 +61,11 @@ pipeline {
     }
     post {
         success {
-            notifySlack('SUCCESS', '#builds', "${COMMIT_MESSAGE}")
+            notifySlack('SUCCESS', '#builds', COMMIT_MESSAGE, AUTHOR)
         }
 
         failure {
-            notifySlack('FAILED', '#builds', "${COMMIT_MESSAGE}")
+            notifySlack('FAILED', '#builds', COMMIT_MESSAGE, AUTHOR)
         }
 
         always {
