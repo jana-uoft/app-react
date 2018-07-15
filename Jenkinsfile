@@ -27,11 +27,13 @@ pipeline {
         stage ('Test') {
             steps {
                 // test
-                try {
-                    nodejs(nodeJSInstallationName: '10.6.0') {
-                        sh 'yarn test'
-                    }
-                } catch (e) { if (!errorOccurred) {errorOccurred = e} }
+                script {
+                    try {
+                        nodejs(nodeJSInstallationName: '10.6.0') {
+                            sh 'yarn test'
+                        }
+                    } catch (e) { if (!errorOccurred) {errorOccurred = e} }
+                }
             }
             post {
                 always {
