@@ -2,6 +2,7 @@
 
 pipeline {
     environment {
+        CHANNEL = '#builds'
         COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
         AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim()
     }
@@ -10,7 +11,12 @@ pipeline {
         stage('Start') {
             steps {
                 // send build started notifications
-                notifySlack('STARTED', '#builds', "$COMMIT_MESSAGE", "$AUTHOR")
+                notifySlack(
+                    channel: CHANNEL,
+                    branch: "$env.BRANCH_NAME",
+                    commitMessage: COMMIT_MESSAGE,
+                    author: AUTHOR
+                )
             }
         }
         stage ('Install Packages') {
@@ -60,15 +66,13 @@ pipeline {
         }
     }
     post {
-        success {
-            notifySlack('SUCCESS', '#builds', "$COMMIT_MESSAGE", "$AUTHOR")
-        }
-
-        failure {
-            notifySlack('FAILED', '#builds', "$COMMIT_MESSAGE", "$AUTHOR")
-        }
-
         always {
+            notifySlack(
+                channel: CHANNEL,
+                branch: "$env.BRANCH_NAME",
+                commitMessage: COMMIT_MESSAGE,
+                author: AUTHOR
+            )
           cleanWs()
         }
     }
