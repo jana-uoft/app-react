@@ -3,8 +3,7 @@
 pipeline {
     environment {
         COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
-        COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD')
-        AUTHOR = sh(returnStdout: true, script: "git --no-pager show -s --format='%an' $COMMIT").trim()
+        AUTHOR = sh(returnStdout: true, script: "git --no-pager show -s --format='%an'").trim()
     }
     agent any
     stages {
