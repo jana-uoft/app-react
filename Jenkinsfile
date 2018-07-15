@@ -34,7 +34,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!errorOccured) {errorOccured = e.message} }
+                    } catch (e) { if (!errorOccured) {errorOccured = "Failing tests"} }
                 }
             }
             post {
