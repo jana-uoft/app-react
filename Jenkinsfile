@@ -48,6 +48,7 @@ pipeline {
                         cloverReportFileName: 'clover.xml',
                         healthyTarget: [methodCoverage: 80, conditionalCoverage: 80, statementCoverage: 80], // optional, default is: method=70, conditional=80, statement=80
                     ])
+                    echo currentBuild.currentResult
                 }
             }
         }
