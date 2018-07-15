@@ -109,7 +109,7 @@ pipeline {
             script {
               try {
                 // Upload archive to server
-                echo "scp ${SITE_NAME}${getSuffix()}.tar.gz root@165.227.35.62:/root/"
+                sh "scp ${SITE_NAME}${getSuffix()}.tar.gz root@165.227.35.62:/root/ 2>commandResult"
               } catch (e) { if (!errorOccured) {errorOccured = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
             }
           }
