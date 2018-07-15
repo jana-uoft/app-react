@@ -25,9 +25,9 @@ pipeline {
           try {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarnd 2>commandResult'
+              sh 'yarn 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages."} }
+          } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}"} }
         }
       }
     }
@@ -37,9 +37,9 @@ pipeline {
         script {
           try {
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn test'
+              sh 'yarn test 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected."} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected.\n\n${readFile('commandResult').trim()}"} }
         }
       }
       post {
@@ -88,8 +88,8 @@ pipeline {
   }
   post {
     always {
-      // Send final 'SUCCESS/FAILURE' notification. If error occured in script, stdout and stderr will be in file commandResult
-      notifySlack("$errorOccured\n\n${readFile('commandResult').trim()}")
+      // Send final 'SUCCESS/FAILURE' notification based on errorOccured.
+      notifySlack(errorOccured)
       cleanWs() // Recursively clean workspace
     }
   }
