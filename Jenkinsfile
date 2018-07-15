@@ -1,14 +1,14 @@
 #!groovy
 
-def errorOccured = false // used to verify buildStatus during every stage
-
 pipeline {
     // construct global env values
     environment {
+        ERROR_OCCURED = false  // used to verify buildStatus during every stage
         SLACK_CHANNEL = '#builds'
         COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
         COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim()
-
+        PRODUCTION_BRANCH = 'master'
+        DEVELOPMENT_BRANCH = 'dev'
     }
     agent any
     stages {
@@ -34,7 +34,7 @@ pipeline {
                         nodejs(nodeJSInstallationName: '10.6.0') {
                             sh 'yarn test'
                         }
-                    } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected"} }
+                    } catch (e) { if (!ERROR_OCCURED) {ERROR_OCCURED = "Failing Tests Detected"} }
                 }
             }
             post {
@@ -49,8 +49,8 @@ pipeline {
                         failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
                     ])
                     script {
-                        if (!errorOccured && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-                            errorOccured = "Insufficent Test Coverage"
+                        if (!ERROR_OCCURED && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
+                            ERROR_OCCURED = "Insufficent Test Coverage"
                         }
                     }
                 }
@@ -59,7 +59,7 @@ pipeline {
         stage ('Build') {
             when {
                 expression {
-                    return !errorOccured;
+                    return !ERROR_OCCURED;
                 }
             }
             steps {
@@ -78,7 +78,7 @@ pipeline {
     }
     post {
         always {
-            notifySlack(errorOccured)
+            notifySlack()
             cleanWs()
         }
     }
