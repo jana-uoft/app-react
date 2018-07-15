@@ -27,9 +27,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarnd > commandResult 2>&1'
             }
-          } catch (e) { if (!errorOccured) {
-            def output = readFile('commandResult').trim()
-            errorOccured = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}"}
+          } catch (e) { if (!errorOccured) { errorOccured = "Failed while installing node packages."}
           }
         }
       }
@@ -42,7 +40,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn test'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected."} }
         }
       }
       post {
@@ -58,7 +56,7 @@ pipeline {
           ])
           script {
             if (!errorOccured && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-              errorOccured = "Insufficent Test Coverage"
+              errorOccured = "Insufficent Test Coverage."
             }
           }
         }
@@ -78,7 +76,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn build'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building app.\n\n$e.message"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building app."} }
         }
       }
       post {
@@ -91,7 +89,8 @@ pipeline {
   }
   post {
     always {
-      notifySlack(errorOccured) // Send final 'SUCCESS/FAILURE' notification
+      // Send final 'SUCCESS/FAILURE' notification. If error occured in script, stdout and stderr will be in file commandResult
+      notifySlack("$errorOccured\n\n${readFile('commandResult').trim()}")
       cleanWs() // Recursively clean workspace
     }
   }
