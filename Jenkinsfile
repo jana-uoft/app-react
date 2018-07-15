@@ -32,14 +32,14 @@ pipeline {
       }
     }
     stage ('Test') {
-      // Skip building if an error has occured in previous stages
+      // Skip stage if an error has occured in previous stages
       when { expression { return !errorOccured; } }
       steps {
         // Test
         script {
           try {
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarnd test 2>commandResult'
+              sh 'yarn test 2>commandResult'
             }
           } catch (e) { if (!errorOccured) {errorOccured = "Failed while testing.\n\n${readFile('commandResult').trim()}"} }
         }
@@ -64,7 +64,7 @@ pipeline {
       }
     }
     stage ('Build') {
-      // Skip building if an error has occured in previous stages
+      // Skip stage if an error has occured in previous stages
       when { expression { return !errorOccured; } }
       steps {
         script {
