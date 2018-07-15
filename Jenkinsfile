@@ -50,6 +50,11 @@ pipeline {
             }
         }
         stage ('Build') {
+            when {
+                expression {
+                    return errorOccurred != false;
+                }
+            }
             steps {
                 // build
                 nodejs(nodeJSInstallationName: '10.6.0') {
@@ -60,13 +65,6 @@ pipeline {
                 success {
                     // Archive the built artifacts
                     echo "Archive and upload to brickyard"
-                }
-            }
-        }
-        stage ('End') {
-            steps {
-                if (errorOccurred != false) {
-                    throw errorOccurred
                 }
             }
         }
