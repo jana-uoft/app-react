@@ -39,7 +39,7 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn test 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failing Tests Detected.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while testing.\n\n${readFile('commandResult').trim()}"} }
         }
       }
       post {
@@ -73,9 +73,9 @@ pipeline {
           try {
             // Build
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn build'
+              sh 'yarn build 2>commandResult'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building app."} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while building.\n\n${readFile('commandResult').trim()}"} }
         }
       }
       post {
