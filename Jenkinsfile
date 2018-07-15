@@ -99,7 +99,7 @@ pipeline {
             sh 'mv node_modules ARCHIVE/ 2>commandResult'
             sh 'mv build ARCHIVE/ 2>commandResult'
             sh "tar zcf ${SITE_NAME}${SUFFIX}.tar.gz ./ARCHIVE/* --transform \"s,^,${SITE_NAME}${SUFFIX}/,S\" --exclude=${SITE_NAME}${SUFFIX}.tar.gz --overwrite --warning=none 2>commandResult"
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while creating archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
         }
         script {
           try {
