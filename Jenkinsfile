@@ -7,6 +7,7 @@ pipeline {
   environment {
     PRODUCTION_BRANCH = 'master' // Source branch used for production
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
+    CURRENT_BRANCH = env.GIT_BRANCH.getAt(0..(env.GIT_BRANCH.indexOf('/') - 1))
     SLACK_CHANNEL = '#builds' // Slack channel to post build notifications
     COMMIT_MESSAGE = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim() // Auto generated
     COMMIT_AUTHOR = sh(returnStdout: true, script: 'git --no-pager show -s --format=%an').trim() // Auto generated
@@ -16,7 +17,7 @@ pipeline {
     stage('Start') {
       steps {
         notifySlack() // Send 'BUILD STARTED' notification
-        echo env.GIT_BRANCH
+        echo CURRENT_BRANCH
       }
     }
     stage ('Install Packages') {
