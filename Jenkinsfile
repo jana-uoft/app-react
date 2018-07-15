@@ -25,9 +25,9 @@ pipeline {
           try {
             // Install required node packages
             nodejs(nodeJSInstallationName: '10.6.0') {
-              def retVal = sh(script: 'yarnd', returnStatus: true)
+              sh 'yarnd > commandResult'
             }
-          } catch (e) { if (!errorOccured) {errorOccured = "Failed while installing node packages.\n\n$retVal"} }
+          } catch (e) { if (!errorOccured) {errorOccured = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}"} }
         }
       }
     }
