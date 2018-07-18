@@ -30,7 +30,11 @@ pipeline {
       steps {
         // Send 'Build Started' notification
         echo "Sending build started notification to slack"
-        notifySlack channel: '#builds', branchName: CURRENT_BRANCH, commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
+        notifySlack
+          channel: '#builds',
+          branchName: CURRENT_BRANCH,
+          commitMessage: COMMIT_MESSAGE,
+          commitAuthor: COMMIT_AUTHOR
       }
     }
     stage ('Install Packages') {
@@ -45,7 +49,7 @@ pipeline {
             if (!errorMessage) {
               errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
-            currentBuild.result = 'FAILURE'
+            currentBuild.currentResult = 'FAILURE'
           }
         }
       }
@@ -64,7 +68,7 @@ pipeline {
             if (!errorMessage) {
               errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
-            currentBuild.result = 'UNSTABLE'
+            currentBuild.currentResult = 'UNSTABLE'
           }
         }
       }
@@ -80,9 +84,9 @@ pipeline {
             failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
           ])
           script {
-            if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
+            if (!errorMessage && currentBuild.currentResultIsWorseOrEqualTo('UNSTABLE')) {
               errorMessage = "Insufficent Test Coverage."
-              currentBuild.result = 'UNSTABLE'
+              currentBuild.currentResult = 'UNSTABLE'
             }
           }
         }
@@ -102,7 +106,7 @@ pipeline {
             if (!errorMessage) {
               errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
-            currentBuild.result = 'FAILURE'
+            currentBuild.currentResult = 'FAILURE'
           }
         }
       }
@@ -124,7 +128,7 @@ pipeline {
             if (!errorMessage) {
               errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
-            currentBuild.result = 'FAILURE'
+            currentBuild.currentResult = 'FAILURE'
           }
         }
       }
@@ -141,7 +145,7 @@ pipeline {
             if (!errorMessage) {
               errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
-            currentBuild.result = 'FAILURE'
+            currentBuild.currentResult = 'FAILURE'
           }
         }
       }
@@ -151,7 +155,7 @@ pipeline {
     always {
       cleanWs() // Recursively clean workspace
       echo "Sending final build status notification to slack"
-      notifySlack status: currentBuild.result, message: errorMessage, channel: '#builds', branchName: CURRENT_BRANCH, commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
+      notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds', branchName: CURRENT_BRANCH, commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
     }
   }
 }
