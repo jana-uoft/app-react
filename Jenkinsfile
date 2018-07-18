@@ -127,12 +127,12 @@ pipeline {
       currentBuild.result = errorMessage == "" ? 'SUCCESS' : 'FAILURE'
       cleanWs() // Recursively clean workspace
       echo "Sending final build status notification to slack"
-      notifySlack [
+      notifySlack {[
         'status': currentBuild.result,
         'message': errorMessage,
         'channel': '#builds',
         'commitMessage': COMMIT_MESSAGE,
         'commitAuthor': COMMIT_AUTHOR,
-      ]
+      ]}
   }
 }
