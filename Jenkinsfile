@@ -149,7 +149,7 @@ pipeline {
   post {
     always {
       echo "Sending final build status notification to slack"
-      notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
+      notifySlack status: currentBuild.currentResult, message: 'WOHOOO ! This is a custom message on Success. Sweeeeet ! ', channel: '#builds'
       cleanWs() // Recursively clean workspace
     }
   }
