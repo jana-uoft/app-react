@@ -41,7 +41,12 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn 2>commandResult'
             }
-          } catch (e) { if (!errorMessage) { errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.result = 'FAILURE'
+          }
         }
       }
     }
@@ -55,7 +60,12 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn test 2>commandResult'
             }
-          } catch (e) { if (!errorMessage) {errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.result = 'UNSTABLE'
+          }
         }
       }
       post {
@@ -72,6 +82,7 @@ pipeline {
           script {
             if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
               errorMessage = "Insufficent Test Coverage."
+              currentBuild.result = 'UNSTABLE'
             }
           }
         }
@@ -87,7 +98,12 @@ pipeline {
             nodejs(nodeJSInstallationName: '10.6.0') {
               sh 'yarn build 2>commandResult'
             }
-          } catch (e) { if (!errorMessage) {errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.result = 'FAILURE'
+          }
         }
       }
     }
@@ -104,7 +120,12 @@ pipeline {
             // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
             // Upload archive to server
             // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
-          } catch (e) { if (!errorMessage) {errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.result = 'FAILURE'
+          }
         }
       }
     }
@@ -116,19 +137,21 @@ pipeline {
           try {
             // Deploy app
             // sh "rsync -azP ARCHIVE/ root@jana19.org:/var/www/jana19.org/"
-          } catch (e) { if (!errorMessage) {errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"} }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.result = 'FAILURE'
+          }
         }
       }
     }
   }
   post {
     always {
-      // Set the current build status based on errorMessage
-      currentBuild.result = errorMessage == "" ? 'SUCCESS' : 'FAILURE'
-      def status = currentBuild.result
       cleanWs() // Recursively clean workspace
       echo "Sending final build status notification to slack"
-      notifySlack status: status, message: errorMessage, channel: '#builds', branchName: CURRENT_BRANCH, commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
+      notifySlack status: currentBuild.result, message: errorMessage, channel: '#builds', branchName: CURRENT_BRANCH, commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
     }
   }
 }
