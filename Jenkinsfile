@@ -85,7 +85,7 @@ pipeline {
             failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
           ])
           script {
-            if (!errorMessage && currentBuild.currentResultIsWorseOrEqualTo('UNSTABLE')) {
+            if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
               errorMessage = "Insufficent Test Coverage."
               currentBuild.currentResult = 'UNSTABLE'
             }
