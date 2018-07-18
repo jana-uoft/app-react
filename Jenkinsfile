@@ -128,7 +128,7 @@ pipeline {
       def status = currentBuild.result
       cleanWs() // Recursively clean workspace
       echo "Sending final build status notification to slack"
-      notifySlack status: status
+      notifySlack status: status, message: errorMessage, channel: '#builds', branchName: CURRENT_BRANCH, commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
     }
   }
 }
