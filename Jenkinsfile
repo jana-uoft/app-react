@@ -149,9 +149,9 @@ pipeline {
   }
   post {
     always {
-      cleanWs() // Recursively clean workspace
       echo "Sending final build status notification to slack"
       notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
+      cleanWs() // Recursively clean workspace
     }
   }
 }
