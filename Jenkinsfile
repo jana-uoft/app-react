@@ -30,11 +30,12 @@ pipeline {
       steps {
         // Send 'Build Started' notification
         echo "Sending build started notification to slack"
-        notifySlack
+        notifySlack{
           channel: '#builds',
           branchName: CURRENT_BRANCH,
           commitMessage: COMMIT_MESSAGE,
           commitAuthor: COMMIT_AUTHOR
+        }
       }
     }
     stage ('Install Packages') {
