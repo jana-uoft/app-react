@@ -1,5 +1,7 @@
 #!groovy
 
+@Library('slack-notify') _
+
 def errorOccured = false // Used to check buildStatus during any stage
 
 def isDeploymentBranch(){
@@ -26,8 +28,9 @@ pipeline {
   stages {
     stage('Start') {
       steps {
-        notifySlack() // Send 'Build Started' notification
-        sh 'printenv'
+        // Send 'Build Started' notification
+        echo "Sending build started notification to slack"
+        notifySlack commitMessage: COMMIT_MESSAGE, commitAuthor: COMMIT_AUTHOR
       }
     }
     stage ('Install Packages') {
