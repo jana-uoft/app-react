@@ -63,7 +63,7 @@ pipeline {
         script {
           try {
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn test 2>commandResult'
+              // sh 'yarn test 2>commandResult'
             }
           } catch (e) {
             if (!errorMessage) {
