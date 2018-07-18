@@ -57,7 +57,7 @@ pipeline {
         script {
           try {
             nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn test 2>commandResult'
+              sh 'yarnd test 2>commandResult'
             }
           } catch (e) {
             if (!errorMessage) {
@@ -76,7 +76,7 @@ pipeline {
             $class: 'CloverPublisher',
             cloverReportDir: 'coverage',
             cloverReportFileName: 'clover.xml',
-            failingTarget: [methodCoverage: 80, conditionalCoverage: 80, statementCoverage: 80]
+            failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
           ])
           script {
             if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
