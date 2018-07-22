@@ -35,14 +35,15 @@ pipeline {
     skipDefaultCheckout true
   }
   stages {
-    stage('Notify') {
-      agent {label 'master'}
-      steps {
-        notifySlack channel: '#builds' // Send 'Build Started' notification
-      }
-    }
+    // stage('Notify') {
+    //   agent {label 'master'}
+    //   steps {
+    //     notifySlack channel: '#builds' // Send 'Build Started' notification
+    //   }
+    // }
     stage('Checkout GIT') {
       steps {
+        slackSend "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
         cleanWs() // Clean current workspace before checkout
         checkout scm
       }
