@@ -40,8 +40,6 @@ pipeline {
       steps {
         script {
           try {
-            sh "ls -al"
-            sh "pwd"
             // Install required node packages
             sh 'yarn 2>commandResult'
           } catch (e) {
