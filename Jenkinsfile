@@ -28,17 +28,11 @@ pipeline {
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
-    skipDefaultCheckout true
   }
   stages {
-    stage('Checkout SCM') {
-      steps {
-        notifySlack status: 'STARTED', channel: SLACK_CHANNEL
-        checkout scm
-      }
-    }
     stage ('Install Packages') {
       steps {
+        notifySlack status: 'STARTED', channel: SLACK_CHANNEL
         script {
           try {
             // Install required node packages
