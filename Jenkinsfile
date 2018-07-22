@@ -14,10 +14,8 @@ def getSuffix() {
   return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : '';
 }
 
-node(){
-notifySlack channel: '#builds' // Send 'Build Started' notification
+notifySlack({channel: '#builds'}) // Send 'Build Started' notification
 
-}
 
 pipeline {
   // construct global env variables
