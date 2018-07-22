@@ -36,7 +36,7 @@ pipeline {
   }
   stages {
     stage('Notify') {
-      agent none
+      agent master
       steps {
         notifySlack channel: '#builds' // Send 'Build Started' notification
       }
