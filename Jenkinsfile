@@ -41,6 +41,7 @@ pipeline {
           steps {
             script {
               try {
+                sh "ls -al"
                 // Install required node packages
                 sh 'yarn 2>commandResult'
               } catch (e) {
@@ -116,7 +117,7 @@ pipeline {
             script {
               try {
                 // Create archive
-                sh "ls -al"
+
                 sh 'mkdir -p ./ARCHIVE 2>commandResult'
                 sh 'mv node_modules/ ./ARCHIVE/ 2>commandResult'
                 sh 'mv build/* ARCHIVE/ 2>commandResult'
