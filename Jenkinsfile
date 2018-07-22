@@ -30,6 +30,8 @@ pipeline {
         // Send 'Build Started' notification
         echo "Sending build started notification to slack"
         notifySlack channel: '#builds'
+        cleanWs()
+        checkout scm
       }
     }
     stage ('Install Packages') {
@@ -178,32 +180,15 @@ pipeline {
   }
   post {
     always {
-      stages {
-        stage ('Clean Docker') {
-          agent {
-            docker {
-              image 'node:10-alpine'
-              reuseNode true
-            }
-          }
-          steps {
-            cleanWs() // Recursively clean workspace in docker container
-          }
-        }
-        stage ('Clean build workspace') {
-          steps {
-            script {
-              try {
-                echo "Sending final build status notification to slack"
-                notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
-              } catch (e) {
-                sh "echo ${e.message}"
-              }
-            }
-            cleanWs() // Recursively clean workspace
-          }
+      script {
+        try {
+          echo "Sending final build status notification to slack"
+          notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
+        } catch (e) {
+          sh "echo ${e.message}"
         }
       }
+      cleanWs() // Recursively clean workspace
     }
   }
 }
