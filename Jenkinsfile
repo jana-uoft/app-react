@@ -28,9 +28,10 @@ pipeline {
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
+    skipDefaultCheckout true
   }
   stages {
-    stage('Checkout GIT') {
+    stage('Checkout SCM') {
       steps {
         notifySlack status: 'STARTED', channel: SLACK_CHANNEL
         checkout scm
