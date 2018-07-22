@@ -32,7 +32,7 @@ pipeline {
   stages {
     stage('Checkout GIT') {
       steps {
-        notifySlack channel: SLACK_CHANNEL
+        notifySlack status: 'STARTED', channel: SLACK_CHANNEL
         checkout scm
       }
     }
@@ -150,7 +150,7 @@ pipeline {
   }
   post {
     always {
-      notifySlack status: currentBuild.currentResult, message: errorMessage, channel: SLACK_CHANNEL
+      notifySlack message: errorMessage, channel: SLACK_CHANNEL
       cleanWs() // Recursively clean workspace
     }
   }
