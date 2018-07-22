@@ -14,7 +14,6 @@ def getSuffix() {
   return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : '';
 }
 
-notifySlack(channel: '#builds') // Send 'Build Started' notification
 
 
 pipeline {
@@ -26,6 +25,8 @@ pipeline {
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
+  notifySlack(channel: '#builds') // Send 'Build Started' notification
+
   agent {
     docker {
       image 'node:10-alpine'
