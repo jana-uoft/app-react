@@ -124,7 +124,7 @@ pipeline {
                 // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
               } catch (e) {
                 if (!errorMessage) {
-                  sh "echo ${e.message}"
+                  sh "echo ${readFile('commandResult').trim()}"
                   errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
                 }
                 currentBuild.currentResult = 'FAILURE'
