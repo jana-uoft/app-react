@@ -14,8 +14,6 @@ def getSuffix() {
   return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : '';
 }
 
-
-
 pipeline {
   // construct global env variables
   environment {
@@ -29,19 +27,12 @@ pipeline {
     dockerfile true
   }
   options {
-    // skipDefaultCheckout true
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
   stages {
-    // stage('Notify') {
-    //   agent {label 'master'}
-    //   steps {
-    //     notifySlack channel: '#builds' // Send 'Build Started' notification
-    //   }
-    // }
     stage('Checkout GIT') {
       steps {
-        slackSend "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        notifySlack channel: SLACK_CHANNEL
         checkout scm
       }
     }
@@ -126,7 +117,6 @@ pipeline {
         script {
           try {
             // Create archive
-
             sh 'mkdir -p ./ARCHIVE 2>commandResult'
             sh 'mv node_modules/ ./ARCHIVE/ 2>commandResult'
             sh 'mv build/* ARCHIVE/ 2>commandResult'
@@ -162,13 +152,7 @@ pipeline {
   }
   post {
     always {
-      script {
-        try {
-          notifySlack status: currentBuild.result, message: errorMessage, channel: '#builds'
-        } catch (e) {
-          slackSend message: errorMessage, channel: '#builds'
-        }
-      }
+      notifySlack status: currentBuild.currentResult, message: errorMessage, channel: SLACK_CHANNEL
       cleanWs() // Recursively clean workspace
     }
   }
