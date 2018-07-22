@@ -164,8 +164,9 @@ pipeline {
     always {
       script {
         try {
-        } catch (e) {
           notifySlack status: currentBuild.result, message: errorMessage, channel: '#builds'
+        } catch (e) {
+          slackSend message: errorMessage, channel: '#builds'
         }
       }
       cleanWs() // Recursively clean workspace
