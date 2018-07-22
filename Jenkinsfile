@@ -14,7 +14,10 @@ def getSuffix() {
   return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : '';
 }
 
+node(){
 notifySlack channel: '#builds' // Send 'Build Started' notification
+
+}
 
 pipeline {
   // construct global env variables
@@ -189,8 +192,6 @@ pipeline {
     always {
       script {
         try {
-          echo "Sending final build status notification to slack"
-          notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
         } catch (e) {
           sh "echo ${e.message}"
         }
@@ -199,3 +200,5 @@ pipeline {
     }
   }
 }
+
+notifySlack status: 'STABLE', message: errorMessage, channel: '#builds'
