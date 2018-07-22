@@ -26,9 +26,7 @@ pipeline {
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
   agent {
-    docker {
-      dockerfile true
-    }
+    dockerfile true
   }
   options {
     // skipDefaultCheckout true
