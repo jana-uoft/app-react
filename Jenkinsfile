@@ -42,9 +42,7 @@ pipeline {
             script {
               try {
                 // Install required node packages
-                nodejs(nodeJSInstallationName: '10.6.0') {
-                  sh 'yarn 2>commandResult'
-                }
+                sh 'yarn 2>commandResult'
               } catch (e) {
                 if (!errorMessage) {
                   errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
