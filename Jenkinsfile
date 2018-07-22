@@ -35,10 +35,9 @@ pipeline {
     skipDefaultCheckout true
   }
   stages {
+    notifySlack channel: '#builds' // Send 'Build Started' notification
     stage('Checkout GIT') {
-      agent any
       steps {
-        notifySlack channel: '#builds' // Send 'Build Started' notification
         cleanWs() // Clean current workspace before checkout
         checkout scm
       }
