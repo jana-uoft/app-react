@@ -31,7 +31,7 @@ pipeline {
     }
   }
   options {
-    skipDefaultCheckout true
+    // skipDefaultCheckout true
   }
   stages {
     // stage('Notify') {
