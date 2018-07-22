@@ -27,7 +27,7 @@ pipeline {
   }
   agent {
     docker {
-      image 'node:10-alpine'
+      dockerfile true
     }
   }
   options {
@@ -44,7 +44,6 @@ pipeline {
     stage('Checkout GIT') {
       steps {
         slackSend "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-        // cleanWs() // Clean current workspace before checkout
         checkout scm
       }
     }
@@ -168,12 +167,10 @@ pipeline {
       script {
         try {
         } catch (e) {
-          sh "echo ${e.message}"
+          notifySlack status: currentBuild.result, message: errorMessage, channel: '#builds'
         }
       }
       cleanWs() // Recursively clean workspace
     }
   }
 }
-
-notifySlack status: 'STABLE', message: errorMessage, channel: '#builds'
