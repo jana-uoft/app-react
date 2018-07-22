@@ -32,143 +32,160 @@ pipeline {
         notifySlack channel: '#builds'
       }
     }
-    stage('Sequential') {
+    stage ('Install Packages') {
       agent {
-        docker { image 'node:10-alpine' }
+        docker { image 'node:10-alpine', reuseNode true }
       }
-      stages {
-        stage ('Install Packages') {
-          steps {
-            script {
-              try {
-                sh "ls -al"
-                // Install required node packages
-                sh 'yarn 2>commandResult'
-              } catch (e) {
-                if (!errorMessage) {
-                  errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-                }
-                currentBuild.currentResult = 'FAILURE'
-              }
+      steps {
+        script {
+          try {
+            sh "ls -al"
+            // Install required node packages
+            sh 'yarn 2>commandResult'
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
+            currentBuild.currentResult = 'FAILURE'
           }
         }
-        stage ('Test') {
-          // Skip stage if an error has occured in previous stages
-          when { expression { return !errorMessage; } }
-          steps {
-            // Test
-            script {
-              try {
-                nodejs(nodeJSInstallationName: '10.6.0') {
-                  sh 'yarn test 2>commandResult'
-                }
-              } catch (e) {
-                if (!errorMessage) {
-                  errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-                }
-                currentBuild.currentResult = 'UNSTABLE'
-              }
+      }
+    }
+    stage ('Test') {
+      agent {
+        docker { image 'node:10-alpine', reuseNode true }
+      }
+      // Skip stage if an error has occured in previous stages
+      when { expression { return !errorMessage; } }
+      steps {
+        // Test
+        script {
+          try {
+            nodejs(nodeJSInstallationName: '10.6.0') {
+              sh 'yarn test 2>commandResult'
             }
-          }
-          post {
-            always {
-              // Publish junit test results
-              junit testResults: 'junit.xml', allowEmptyResults: true
-              // Publish clover.xml and html(if generated) test coverge report
-              step([
-                $class: 'CloverPublisher',
-                cloverReportDir: 'coverage',
-                cloverReportFileName: 'clover.xml',
-                failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
-              ])
-              script {
-                if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-                  errorMessage = "Insufficent Test Coverage."
-                  currentBuild.currentResult = 'UNSTABLE'
-                }
-              }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
             }
-          }
-        }
-        stage ('Build') {
-          // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
-          when { expression { return !errorMessage && isDeploymentBranch(); } }
-          steps {
-            script {
-              try {
-                // Build
-                nodejs(nodeJSInstallationName: '10.6.0') {
-                  sh 'yarn build 2>commandResult'
-                }
-              } catch (e) {
-                if (!errorMessage) {
-                  errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-                }
-                currentBuild.currentResult = 'FAILURE'
-              }
-            }
-          }
-        }
-        stage ('Upload Archive') {
-          // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
-          when { expression { return !errorMessage && isDeploymentBranch(); } }
-          steps {
-            script {
-              try {
-                // Create archive
-
-                sh 'mkdir -p ./ARCHIVE 2>commandResult'
-                sh 'mv node_modules/ ./ARCHIVE/ 2>commandResult'
-                sh 'mv build/* ARCHIVE/ 2>commandResult'
-                // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
-                // Upload archive to server
-                // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
-              } catch (e) {
-                if (!errorMessage) {
-                  errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-                }
-                currentBuild.currentResult = 'FAILURE'
-              }
-            }
-          }
-        }
-        stage ('Deploy') {
-          // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
-          when { expression { return !errorMessage && isDeploymentBranch(); } }
-          steps {
-            script {
-              try {
-                // Deploy app
-                // sh "rsync -azP ARCHIVE/ root@jana19.org:/var/www/jana19.org/"
-              } catch (e) {
-                if (!errorMessage) {
-                  errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-                }
-                currentBuild.currentResult = 'FAILURE'
-              }
-            }
+            currentBuild.currentResult = 'UNSTABLE'
           }
         }
       }
       post {
         always {
-          cleanWs() // Recursively clean workspace inside docker container
+          // Publish junit test results
+          junit testResults: 'junit.xml', allowEmptyResults: true
+          // Publish clover.xml and html(if generated) test coverge report
+          step([
+            $class: 'CloverPublisher',
+            cloverReportDir: 'coverage',
+            cloverReportFileName: 'clover.xml',
+            failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
+          ])
+          script {
+            if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
+              errorMessage = "Insufficent Test Coverage."
+              currentBuild.currentResult = 'UNSTABLE'
+            }
+          }
+        }
+      }
+    }
+    stage ('Build') {
+      agent {
+        docker { image 'node:10-alpine', reuseNode true }
+      }
+      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
+      when { expression { return !errorMessage && isDeploymentBranch(); } }
+      steps {
+        script {
+          try {
+            // Build
+            nodejs(nodeJSInstallationName: '10.6.0') {
+              sh 'yarn build 2>commandResult'
+            }
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.currentResult = 'FAILURE'
+          }
+        }
+      }
+    }
+    stage ('Upload Archive') {
+      agent {
+        docker { image 'node:10-alpine', reuseNode true }
+      }
+      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
+      when { expression { return !errorMessage && isDeploymentBranch(); } }
+      steps {
+        script {
+          try {
+            // Create archive
+
+            sh 'mkdir -p ./ARCHIVE 2>commandResult'
+            sh 'mv node_modules/ ./ARCHIVE/ 2>commandResult'
+            sh 'mv build/* ARCHIVE/ 2>commandResult'
+            // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
+            // Upload archive to server
+            // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.currentResult = 'FAILURE'
+          }
+        }
+      }
+    }
+    stage ('Deploy') {
+      agent {
+        docker { image 'node:10-alpine', reuseNode true }
+      }
+      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
+      when { expression { return !errorMessage && isDeploymentBranch(); } }
+      steps {
+        script {
+          try {
+            // Deploy app
+            // sh "rsync -azP ARCHIVE/ root@jana19.org:/var/www/jana19.org/"
+          } catch (e) {
+            if (!errorMessage) {
+              errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+            }
+            currentBuild.currentResult = 'FAILURE'
+          }
         }
       }
     }
   }
   post {
     always {
-      script {
-        try {
-          echo "Sending final build status notification to slack"
-          notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
-        } catch (e) {
-          sh "echo ${e.message}"
+      stages {
+        stage ('Clean Docker') {
+          agent {
+            docker { image 'node:10-alpine', reuseNode true }
+          }
+          steps {
+            cleanWs() // Recursively clean workspace in docker container
+          }
+        }
+        stage ('Clean build workspace') {
+          steps {
+            script {
+              try {
+                echo "Sending final build status notification to slack"
+                notifySlack status: currentBuild.currentResult, message: errorMessage, channel: '#builds'
+              } catch (e) {
+                sh "echo ${e.message}"
+              }
+            }
+            cleanWs() // Recursively clean workspace
+          }
         }
       }
-      cleanWs() // Recursively clean workspace
     }
   }
 }
