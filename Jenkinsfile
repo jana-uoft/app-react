@@ -152,6 +152,11 @@ pipeline {
         }
       }
     }
+    post {
+      always {
+        cleanWs() // Recursively clean workspace inside docker
+      }
+    }
   }
   post {
     always {
