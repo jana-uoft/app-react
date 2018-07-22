@@ -32,6 +32,7 @@ pipeline {
   }
   options {
     // skipDefaultCheckout true
+    buildDiscarder(logRotator(numToKeepStr: '5')) }
   }
   stages {
     // stage('Notify') {
