@@ -24,13 +24,14 @@ pipeline {
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
   agent any
+  options {
+    skipDefaultCheckout true
+  }
   stages {
-    stage('Start') {
+    stage('Checkout GIT') {
       steps {
-        // Send 'Build Started' notification
-        echo "Sending build started notification to slack"
-        notifySlack channel: '#builds'
-        cleanWs()
+        notifySlack channel: '#builds' // Send 'Build Started' notification
+        cleanWs() // Clean current workspace before checkout
         checkout scm
       }
     }
