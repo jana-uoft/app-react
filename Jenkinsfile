@@ -25,7 +25,10 @@ pipeline {
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
+  script {
   notifySlack(channel: '#builds') // Send 'Build Started' notification
+
+  }
 
   agent {
     docker {
