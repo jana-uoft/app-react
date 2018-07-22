@@ -36,7 +36,7 @@ pipeline {
   }
   stages {
     stage('Checkout GIT') {
-      agent node
+      agent any
       steps {
         notifySlack channel: '#builds' // Send 'Build Started' notification
         cleanWs() // Clean current workspace before checkout
