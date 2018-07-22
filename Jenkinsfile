@@ -23,9 +23,7 @@ pipeline {
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
-  agent {
-    docker { image 'node:10-alpine' }
-  }
+  agent any
   stages {
     stage('Start') {
       steps {
@@ -34,115 +32,122 @@ pipeline {
         notifySlack channel: '#builds'
       }
     }
-    stage ('Install Packages') {
-      steps {
-        script {
-          try {
-            // Install required node packages
-            nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn 2>commandResult'
-            }
-          } catch (e) {
-            if (!errorMessage) {
-              errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-            }
-            currentBuild.currentResult = 'FAILURE'
-          }
-        }
+    stage('Sequential') {
+      agent {
+        docker { image 'node:10-alpine' }
       }
-    }
-    stage ('Test') {
-      // Skip stage if an error has occured in previous stages
-      when { expression { return !errorMessage; } }
-      steps {
-        // Test
-        script {
-          try {
-            nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn test 2>commandResult'
-            }
-          } catch (e) {
-            if (!errorMessage) {
-              errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
-            }
-            currentBuild.currentResult = 'UNSTABLE'
-          }
-        }
-      }
-      post {
-        always {
-          // Publish junit test results
-          junit testResults: 'junit.xml', allowEmptyResults: true
-          // Publish clover.xml and html(if generated) test coverge report
-          step([
-            $class: 'CloverPublisher',
-            cloverReportDir: 'coverage',
-            cloverReportFileName: 'clover.xml',
-            failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
-          ])
-          script {
-            if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
-              errorMessage = "Insufficent Test Coverage."
-              currentBuild.currentResult = 'UNSTABLE'
+      stages {
+        stage ('Install Packages') {
+          steps {
+            script {
+              try {
+                // Install required node packages
+                nodejs(nodeJSInstallationName: '10.6.0') {
+                  sh 'yarn 2>commandResult'
+                }
+              } catch (e) {
+                if (!errorMessage) {
+                  errorMessage = "Failed while installing node packages.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+                }
+                currentBuild.currentResult = 'FAILURE'
+              }
             }
           }
         }
-      }
-    }
-    stage ('Build') {
-      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
-      when { expression { return !errorMessage && isDeploymentBranch(); } }
-      steps {
-        script {
-          try {
-            // Build
-            nodejs(nodeJSInstallationName: '10.6.0') {
-              sh 'yarn build 2>commandResult'
+        stage ('Test') {
+          // Skip stage if an error has occured in previous stages
+          when { expression { return !errorMessage; } }
+          steps {
+            // Test
+            script {
+              try {
+                nodejs(nodeJSInstallationName: '10.6.0') {
+                  sh 'yarn test 2>commandResult'
+                }
+              } catch (e) {
+                if (!errorMessage) {
+                  errorMessage = "Failed while testing.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+                }
+                currentBuild.currentResult = 'UNSTABLE'
+              }
             }
-          } catch (e) {
-            if (!errorMessage) {
-              errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+          }
+          post {
+            always {
+              // Publish junit test results
+              junit testResults: 'junit.xml', allowEmptyResults: true
+              // Publish clover.xml and html(if generated) test coverge report
+              step([
+                $class: 'CloverPublisher',
+                cloverReportDir: 'coverage',
+                cloverReportFileName: 'clover.xml',
+                failingTarget: [methodCoverage: 75, conditionalCoverage: 75, statementCoverage: 75]
+              ])
+              script {
+                if (!errorMessage && currentBuild.resultIsWorseOrEqualTo('UNSTABLE')) {
+                  errorMessage = "Insufficent Test Coverage."
+                  currentBuild.currentResult = 'UNSTABLE'
+                }
+              }
             }
-            currentBuild.currentResult = 'FAILURE'
           }
         }
-      }
-    }
-    stage ('Upload Archive') {
-      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
-      when { expression { return !errorMessage && isDeploymentBranch(); } }
-      steps {
-        script {
-          try {
-            // Create archive
-            sh 'mkdir -p ./ARCHIVE 2>commandResult'
-            sh 'mv node_modules/ ARCHIVE/ 2>commandResult'
-            sh 'mv build/* ARCHIVE/ 2>commandResult'
-            // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
-            // Upload archive to server
-            // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
-          } catch (e) {
-            if (!errorMessage) {
-              errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+        stage ('Build') {
+          // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
+          when { expression { return !errorMessage && isDeploymentBranch(); } }
+          steps {
+            script {
+              try {
+                // Build
+                nodejs(nodeJSInstallationName: '10.6.0') {
+                  sh 'yarn build 2>commandResult'
+                }
+              } catch (e) {
+                if (!errorMessage) {
+                  errorMessage = "Failed while building.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+                }
+                currentBuild.currentResult = 'FAILURE'
+              }
             }
-            currentBuild.currentResult = 'FAILURE'
           }
         }
-      }
-    }
-    stage ('Deploy') {
-      // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
-      when { expression { return !errorMessage && isDeploymentBranch(); } }
-      steps {
-        script {
-          try {
-            // Deploy app
-            // sh "rsync -azP ARCHIVE/ root@jana19.org:/var/www/jana19.org/"
-          } catch (e) {
-            if (!errorMessage) {
-              errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+        stage ('Upload Archive') {
+          // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
+          when { expression { return !errorMessage && isDeploymentBranch(); } }
+          steps {
+            script {
+              try {
+                // Create archive
+                sh 'mkdir -p ./ARCHIVE 2>commandResult'
+                sh 'mv node_modules/ ARCHIVE/ 2>commandResult'
+                sh 'mv build/* ARCHIVE/ 2>commandResult'
+                // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
+                // Upload archive to server
+                // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
+              } catch (e) {
+                if (!errorMessage) {
+                  errorMessage = "Failed while uploading archive.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+                }
+                currentBuild.currentResult = 'FAILURE'
+              }
             }
-            currentBuild.currentResult = 'FAILURE'
+          }
+        }
+        stage ('Deploy') {
+          // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
+          when { expression { return !errorMessage && isDeploymentBranch(); } }
+          steps {
+            script {
+              try {
+                // Deploy app
+                // sh "rsync -azP ARCHIVE/ root@jana19.org:/var/www/jana19.org/"
+              } catch (e) {
+                if (!errorMessage) {
+                  errorMessage = "Failed while deploying.\n\n${readFile('commandResult').trim()}\n\n${e.message}"
+                }
+                currentBuild.currentResult = 'FAILURE'
+              }
+            }
           }
         }
       }
