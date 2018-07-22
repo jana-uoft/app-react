@@ -23,9 +23,7 @@ pipeline {
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
-  agent {
-    docker { image 'node:10-alpine' }
-  }
+  agent any
   stages {
     stage('Start') {
       steps {
@@ -35,6 +33,9 @@ pipeline {
       }
     }
     stage ('Install Packages') {
+      agent  {
+        docker { image 'node:10-alpine' }
+      }
       steps {
         script {
           try {
