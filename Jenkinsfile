@@ -49,12 +49,6 @@ pipeline {
       }
     }
     stage ('Install Packages') {
-      agent {
-        docker {
-          image 'node:10-alpine'
-          reuseNode true
-        }
-      }
       steps {
         script {
           try {
@@ -71,12 +65,6 @@ pipeline {
       }
     }
     stage ('Test') {
-      agent {
-        docker {
-          image 'node:10-alpine'
-          reuseNode true
-        }
-      }
       // Skip stage if an error has occured in previous stages
       when { expression { return !errorMessage; } }
       steps {
@@ -115,12 +103,6 @@ pipeline {
       }
     }
     stage ('Build') {
-      agent {
-        docker {
-          image 'node:10-alpine'
-          reuseNode true
-        }
-      }
       // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
       when { expression { return !errorMessage && isDeploymentBranch(); } }
       steps {
@@ -140,12 +122,6 @@ pipeline {
       }
     }
     stage ('Upload Archive') {
-      agent {
-        docker {
-          image 'node:10-alpine'
-          reuseNode true
-        }
-      }
       // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
       when { expression { return !errorMessage && isDeploymentBranch(); } }
       steps {
@@ -169,12 +145,6 @@ pipeline {
       }
     }
     stage ('Deploy') {
-      agent {
-        docker {
-          image 'node:10-alpine'
-          reuseNode true
-        }
-      }
       // Skip stage if an error has occured in previous stages or if not isDeploymentBranch
       when { expression { return !errorMessage && isDeploymentBranch(); } }
       steps {
