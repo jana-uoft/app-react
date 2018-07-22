@@ -44,7 +44,7 @@ pipeline {
     stage('Checkout GIT') {
       steps {
         slackSend "Build Started - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-        cleanWs() // Clean current workspace before checkout
+        // cleanWs() // Clean current workspace before checkout
         checkout scm
       }
     }
