@@ -118,7 +118,7 @@ pipeline {
                 // Create archive
                 sh 'mkdir -p ./ARCHIVE 2>commandResult'
                 sh 'mv node_modules/ ARCHIVE/ 2>commandResult'
-                sh 'mv build/* ARCHIVE/ 2>commandResult'
+                // sh 'mv build/* ARCHIVE/ 2>commandResult'
                 // sh "cd ARCHIVE && tar zcf ${SITE_NAME}${getSuffix()}.tar.gz * --transform \"s,^,${SITE_NAME}${getSuffix()}/,S\" --exclude=${SITE_NAME}${getSuffix()}.tar.gz --overwrite --warning=none && cd .. 2>commandResult"
                 // Upload archive to server
                 // sh "scp ARCHIVE/${SITE_NAME}${getSuffix()}.tar.gz root@jana19.org:/root/ 2>commandResult"
