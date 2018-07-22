@@ -28,6 +28,7 @@ pipeline {
   }
   stages {
     stage('Start') {
+      agent any
       steps {
         // Send 'Build Started' notification
         echo "Sending build started notification to slack"
