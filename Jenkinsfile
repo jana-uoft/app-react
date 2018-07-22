@@ -25,11 +25,6 @@ pipeline {
     DEVELOPMENT_BRANCH = 'dev' // Source branch used for development
     SLACK_CHANNEL = '#builds' // Slack channel to send build notifications
   }
-  script {
-  notifySlack(channel: '#builds') // Send 'Build Started' notification
-
-  }
-
   agent {
     docker {
       image 'node:10-alpine'
@@ -42,6 +37,7 @@ pipeline {
   stages {
     stage('Checkout GIT') {
       steps {
+        notifySlack channel: '#builds' // Send 'Build Started' notification
         cleanWs() // Clean current workspace before checkout
         checkout scm
       }
