@@ -14,6 +14,8 @@ def getSuffix() {
   return CURRENT_BRANCH==DEVELOPMENT_BRANCH ? '-dev' : '';
 }
 
+notifySlack channel: '#builds' // Send 'Build Started' notification
+
 pipeline {
   // construct global env variables
   environment {
@@ -35,7 +37,6 @@ pipeline {
   stages {
     stage('Checkout GIT') {
       steps {
-        notifySlack channel: '#builds' // Send 'Build Started' notification
         cleanWs() // Clean current workspace before checkout
         checkout scm
       }
